@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inversor League - Ranking</title>
+  <style>
+    /* === TEMA OSCURO: Optimizado para móviles === */
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 15px;
+      background: #121212;
+      color: #e0e0e0;
+      -webkit-text-size-adjust: 100%;
+    }
+    h1, h2 {
+      text-align: center;
+      color: white;
+      margin: 10px 0;
+      font-size: 1.6em;
+    }
+    h3 {
+        color: #ddd;
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+    }
+    p {
+      text-align: center;
+      font-size: 0.9em;
+      color: #aaa;
+      margin: 5px 0;
+    }
+
+    /* Tabla responsiva */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 20px;
+    }
+    table {
+      min-width: 400px;
+      border-collapse: collapse;
+      background: #1e1e1e;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      width: 100%;
+    }
+    th, td {
+      padding: 10px 8px;
+      font-size: 0.85em;
+      text-align: left;
+      border-bottom: 1px solid #444;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #003366;
+      color: white;
+      font-weight: bold;
+    }
+
+    /* Estilos para detalles de cambio de moneda */
+    .rate-info {
+        display: block;
+        font-size: 0.75em;
+        color: #888;
+        margin-top: 2px;
+        font-style: italic;
+    }
+    .sold-tag {
+        background-color: #d32f2f;
+        color: white;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.7em;
+        font-weight: bold;
+        margin-right: 4px;
+    }
+    
+    /* Fila de acción vendida */
+    tr.sold-row {
+        background-color: #1a1a1a;
+        color: #888;
+    }
+    tr.sold-row a {
+        color: #888 !important;
+        text-decoration: none !important;
+    }
+
+    /* Botones y enlaces */
+    .refresh-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 14px 24px;
+      background-color: #003366;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: bold;
+      text-align: center;
+    }
+    .refresh-btn:hover {
+      background-color: #002244;
+    }
+    .refresh-btn:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
+
+    .back-link {
+      display: block;
+      margin: 20px 0;
+      padding: 12px;
+      background-color: #003366;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 8px;
+      font-size: 1em;
+    }
+    .back-link:hover {
+      background-color: #002244;
+    }
+
+    .update-time, .status {
+      text-align: center;
+      font-style: italic;
+      color: #aaa;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+
+    /* Colores de ganancia/perdida */
+    .highlight {
+      background-color: #2c3e50 !important;
+    }
+    .profit { color: #4caf50; font-weight: bold; }
+    .loss { color: #f44336; font-weight: bold; }
+    .neutral { color: #aaa; }
+
+  </style>
+</head>
+<body>
+
+  <div id="main-view">
+    <h1>🏆 Investment League 2025</h1>
+    
+    <button class="refresh-btn" onclick="fetchData(true)">Actualizar Yahoo</button>
+    <div class="status" id="status">Cargando datos...</div>
+    <div class="update-time" id="update-time">Última actualización: Cargando...</div>
+
+    <div style="text-align:center; margin: 20px 0;">
+      <span id="eurusd">Tasa EUR/USD (Actual): cargando...</span>
+    </div>
+
+    <h2>📊 Ranking</h2>
+    <div class="table-container">
+      <table id="ranking-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Usuario</th>
+            <th>Valor Actual (€)</th>
+            <th>PyG (€)</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody id="ranking-body">
+          <tr><td colspan="5">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="individual-view" style="display:none;">
+    <a href="#" class="back-link" onclick="showMainView(); return false;">← Volver al ranking</a>
+    <button class="refresh-btn" onclick="fetchData(true)">Actualizar Yahoo</button>
+    <div class="status" id="status-individual">Cargando datos...</div>
+    <h2 id="user-title">Cartera de [Nombre]</h2>
+    <div id="user-details"></div>
+    <div class="update-time" id="update-time-individual">Última actualización: Cargando...</div>
+
+    <h3>Detalles de Activos</h3>
+    <div class="table-container">
+      <table id="user-investments-table">
+        <thead>
+          <tr>
+            <th>Activo</th>
+            <th>Cant.</th>
+            <th>P. Compra</th>
+            <th>P. Actual / Venta</th>
+            <th>Var. 24h</th>
+            <th>Valor Total (€)</th>
+            <th>PyG (€)</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody id="user-investments-body">
+          <tr><td colspan="8">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const DATA_FILE = 'data.json';
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 2000;
+
+    // "usdToEurMultiplier" es el valor interno (ej: 0.95). 
+    // Significa: 1 USD = 0.95 EUR.
+    // Para mostrar EUR/USD haremos la inversa (1 / 0.95 = 1.05).
+    let usdToEurMultiplier = 0.95; 
+
+    let currentView = 'main';
+    let allData = null;
+    let yahooPrices = {};
+    let yahooChanges24h = {};
+    let userResults = [];
+
+    function getCurrentTime() {
+      const now = new Date();
+      return now.toLocaleString('es-ES', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+    }
+
+    async function fetchWithRetry(url, options = {}) {
+      let lastError;
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        try {
+          const response = await fetch(url, options);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return await response.json();
+        } catch (error) {
+          lastError = error;
+          if (i < MAX_RETRIES - 1) {
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          }
+        }
+      }
+      throw lastError;
+    }
+
+    function formatMoney(n) {
+      return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+    }
+    
+    // Formatea el cambio con 4 decimales
+    function formatRate(n) {
+        return n ? n.toFixed(4) : '-';
+    }
+
+    async function fetchData(force = false) {
+      const btns = document.querySelectorAll('.refresh-btn');
+      btns.forEach(btn => {
+        btn.disabled = true;
+        btn.textContent = 'Actualizando...';
+      });
+
+      const setStatus = (msg, type) => {
+          const els = [document.getElementById('status'), document.getElementById('status-individual')];
+          els.forEach(el => {
+              el.textContent = msg;
+              el.className = 'status ' + type;
+          });
+      };
+
+      setStatus('Actualizando precios...', 'loading');
+
+      try {
+        if (!allData || force) {
+          const res = await fetch(DATA_FILE + '?t=' + new Date().getTime());
+          allData = await res.json();
+        }
+
+        const symbols = [...new Set(allData.users.flatMap(u => u.investments.map(i => i.symbol)))];
+
+        yahooPrices = {};
+        yahooChanges24h = {};
+        
+        // 1. Obtener Precios Yahoo
+        for (const sym of symbols) {
+            let success = false;
+            for (let attempt = 0; attempt < MAX_RETRIES && !success; attempt++) {
+                try {
+                    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=1d&interval=1d`;
+                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
+                    
+                    const d = await fetchWithRetry(proxyUrl, { signal: AbortSignal.timeout(10000) });
+
+                    if (d && d.chart && d.chart.result && d.chart.result[0]) {
+                        const meta = d.chart.result[0].meta;
+                        yahooPrices[sym] = meta.regularMarketPrice;
+                        
+                        const prevClose = meta.chartPreviousClose;
+                        if (prevClose && meta.regularMarketPrice) {
+                            yahooChanges24h[sym] = ((meta.regularMarketPrice - prevClose) / prevClose) * 100;
+                        } else {
+                            yahooChanges24h[sym] = 0;
+                        }
+                        success = true;
+                    }
+                } catch (e) {
+                   // Fallo silencioso
+                }
+            }
+            if (!success) {
+                console.warn(`No se pudo obtener precio para ${sym}`);
+                yahooPrices[sym] = 0; 
+            }
+        }
+
+        // 2. Actualizar tasa en vivo
+        try {
+          // La API devuelve rates.EUR = Cuantos euros es 1 USD (ej: 0.95)
+          const eurusdData = await fetchWithRetry('https://api.exchangerate-api.com/v4/latest/USD');
+          usdToEurMultiplier = eurusdData.rates.EUR; 
+          
+          // Para visualización invertimos: 1 / 0.95 = 1.05 USD por Euro
+          const displayRate = 1 / usdToEurMultiplier;
+          document.getElementById('eurusd').textContent = `1 EUR = ${displayRate.toFixed(4)} USD (Hoy)`;
+        } catch (e) {
+          console.warn("No se pudo actualizar EUR/USD, usando valor por defecto.");
+        }
+
+        // 3. Cálculos de Cartera
+        userResults = allData.users.map(user => {
+          let investedEur = 0;
+          let currentEur = 0;
+
+          user.investments.forEach(inv => {
+            // --- COSTO BASE ---
+            let itemCostEur = 0;
+            if (inv.currency === 'EUR') {
+                itemCostEur = inv.quantity * inv.buy_price_eur;
+            } else {
+                // El JSON trae multiplicador (0.87). Usamos ese para el cálculo.
+                const multiplier = inv.buy_exchange_rate ? inv.buy_exchange_rate : usdToEurMultiplier;
+                itemCostEur = inv.quantity * inv.buy_price_usd * multiplier;
+            }
+            investedEur += itemCostEur;
+
+            // --- VALOR ACTUAL ---
+            let itemValueEur = 0;
+            if (inv.sold) {
+                // VENDIDA: Usamos precio venta y tasa venta
+                const sellMultiplier = inv.sell_exchange_rate ? inv.sell_exchange_rate : usdToEurMultiplier;
+                itemValueEur = inv.quantity * inv.sell_price_usd * sellMultiplier;
+            } else {
+                // ACTIVA: Precio Yahoo y tasa actual
+                const marketPrice = yahooPrices[inv.symbol] || 0;
+                if (inv.currency === 'EUR') {
+                    itemValueEur = inv.quantity * marketPrice;
+                } else {
+                    itemValueEur = inv.quantity * marketPrice * usdToEurMultiplier;
+                }
+            }
+            currentEur += itemValueEur;
+          });
+
+          return {
+            name: user.name,
+            invested: investedEur,
+            current: currentEur,
+            profit: currentEur - investedEur,
+            pct: investedEur > 0 ? ((currentEur - investedEur) / investedEur) * 100 : 0
+          };
+        });
+
+        // --- ORDENAR POR % (Rentabilidad) ---
+        userResults.sort((a, b) => b.pct - a.pct);
+
+        const tbody = document.getElementById('ranking-body');
+        tbody.innerHTML = '';
+        userResults.forEach((r, idx) => {
+          const row = tbody.insertRow();
+          if (r.name === 'Tú') row.classList.add('highlight');
+          
+          row.innerHTML = `
+            <td>${idx+1}</td>
+            <td><a href="#" onclick="showUserView('${r.name}'); return false;" style="color: white; text-decoration: none; font-weight: bold;">${r.name}</a></td>
+            <td>€${formatMoney(r.current)}</td>
+            <td class="${r.profit >= 0 ? 'profit' : 'loss'}">€${formatMoney(r.profit)}</td>
+            <td class="${r.pct >= 0 ? 'profit' : 'loss'}">${r.pct >= 0 ? '+' : ''}${r.pct.toFixed(2)}%</td>
+          `;
+        });
+
+        document.getElementById('update-time').textContent = `Última actualización: ${getCurrentTime()}`;
+        setStatus(`✅ Actualizado (${symbols.length} activos)`, 'success');
+
+        if (currentView === 'individual' && window.currentUserName) {
+          showUserView(window.currentUserName);
+        }
+
+      } catch (e) {
+        console.error("Error en fetchData:", e);
+        setStatus(`❌ Error: ${e.message}`, 'error');
+      } finally {
+        btns.forEach(btn => {
+          btn.disabled = false;
+          btn.textContent = '⟳  Actualizar';
+        });
+      }
+    }
+
+    function showUserView(userName) {
+      currentView = 'individual';
+      window.currentUserName = userName;
+
+      const userResult = userResults.find(u => u.name === userName);
+      if (!userResult) return;
+
+      document.getElementById('main-view').style.display = 'none';
+      document.getElementById('individual-view').style.display = 'block';
+
+      document.getElementById('user-title').textContent = `Cartera de ${userName}`;
+      document.getElementById('user-details').innerHTML = `
+        <p><strong>Valor Actual:</strong> €${formatMoney(userResult.current)}</p>
+        <p><strong>Rentabilidad Total:</strong> <span class="${userResult.profit >= 0 ? 'profit' : 'loss'}">€${formatMoney(userResult.profit)} (${userResult.pct >= 0 ? '+' : ''}${userResult.pct.toFixed(2)}%)</span></p>
+      `;
+
+      document.getElementById('update-time-individual').textContent = `Última actualización: ${getCurrentTime()}`;
+      
+      const user = allData.users.find(u => u.name === userName);
+      const tbody = document.getElementById('user-investments-body');
+      tbody.innerHTML = '';
+
+      user.investments.forEach(inv => {
+        const isSold = !!inv.sold;
+        const isEur = inv.currency === 'EUR';
+        const quantity = inv.quantity;
+        
+        // --- COLUMNA: PRECIO COMPRA ---
+        let buyPriceDisplay = '';
+        let buyCostTotalEur = 0;
+        
+        if (isEur) {
+            buyPriceDisplay = `€${formatMoney(inv.buy_price_eur)}`;
+            buyCostTotalEur = quantity * inv.buy_price_eur;
+        } else {
+            // Multiplicador interno (ej: 0.87)
+            const multiplier = inv.buy_exchange_rate || usdToEurMultiplier;
+            // Visualización EUR/USD (ej: 1.14) -> Invertimos el multiplicador
+            const displayRate = 1 / multiplier;
+            
+            buyPriceDisplay = `$${formatMoney(inv.buy_price_usd)}<br><span class="rate-info">EUR/USD: ${formatRate(displayRate)}</span>`;
+            buyCostTotalEur = quantity * inv.buy_price_usd * multiplier;
+        }
+
+        // --- COLUMNA: ACTUAL / VENTA ---
+        let currentPriceDisplay = '';
+        let currentValTotalEur = 0;
+        let changePct = 0;
+
+        if (isSold) {
+            // Caso VENDIDO
+            const sellMultiplier = inv.sell_exchange_rate || usdToEurMultiplier;
+            const displaySellRate = 1 / sellMultiplier;
+
+            currentPriceDisplay = `<span class="sold-tag">VENDIDO</span> $${formatMoney(inv.sell_price_usd)}<br><span class="rate-info">EUR/USD: ${formatRate(displaySellRate)}</span>`;
+            currentValTotalEur = quantity * inv.sell_price_usd * sellMultiplier;
+            changePct = 0; 
+        } else {
+            // Caso ACTIVO
+            const yahooP = yahooPrices[inv.symbol] || 0;
+            const change = yahooChanges24h[inv.symbol] || 0;
+            
+            if (isEur) {
+                currentPriceDisplay = `€${formatMoney(yahooP)}`;
+                currentValTotalEur = quantity * yahooP;
+            } else {
+                // Usamos tasa actual de hoy
+                const displayCurrentRate = 1 / usdToEurMultiplier;
+                
+                currentPriceDisplay = `$${formatMoney(yahooP)}<br><span class="rate-info">EUR/USD: ${formatRate(displayCurrentRate)}</span>`;
+                currentValTotalEur = quantity * yahooP * usdToEurMultiplier;
+            }
+            changePct = change;
+        }
+
+        const profit = currentValTotalEur - buyCostTotalEur;
+        const pctTotal = buyCostTotalEur > 0 ? (profit / buyCostTotalEur) * 100 : 0;
+
+        const symbolLink = isSold 
+            ? `${inv.symbol}` 
+            : `<a href="https://finance.yahoo.com/quote/${inv.symbol}" target="_blank" style="color: #bb86fc; text-decoration: underline;">${inv.symbol}</a>`;
+
+        const row = tbody.insertRow();
+        if (isSold) row.classList.add('sold-row');
+
+        row.innerHTML = `
+          <td>${symbolLink}</td>
+          <td>${quantity.toFixed(4)}</td>
+          <td>${buyPriceDisplay}</td>
+          <td>${currentPriceDisplay}</td>
+          <td class="${!isSold && changePct !== 0 ? (changePct >= 0 ? 'profit' : 'loss') : 'neutral'}">
+            ${isSold ? '-' : (changePct >= 0 ? '+' : '') + changePct.toFixed(2) + '%'}
+          </td>
+          <td>€${formatMoney(currentValTotalEur)}</td>
+          <td class="${profit >= 0 ? 'profit' : 'loss'}">€${formatMoney(profit)}</td>
+          <td class="${pctTotal >= 0 ? 'profit' : 'loss'}">${pctTotal >= 0 ? '+' : ''}${pctTotal.toFixed(2)}%</td>
+        `;
+      });
+      
+      const statusInd = document.getElementById('status-individual');
+      statusInd.textContent = `✅ Cartera cargada`;
+      statusInd.className = 'status success';
+    }
+
+    function showMainView() {
+      currentView = 'main';
+      document.getElementById('main-view').style.display = 'block';
+      document.getElementById('individual-view').style.display = 'none';
+    }
+
+    // Inicializar
+    fetchData();
+  </script>
+</body>
+</html>
