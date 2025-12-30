@@ -21,10 +21,10 @@
     {
       "name": "Iñigo",
       "investments": [
-        { "symbol": "ATYR", "type": "stock", "quantity": 19.2749, "buy_price_usd": 0.84, "currency": "USD", "buy_exchange_rate": 0.8685, "sold": true, "sell_price_usd": 0.74, "sell_exchange_rate": 0.848},
+        { "symbol": "ATYR", "type": "stock", "quantity": 19.2749, "buy_price_usd": 0.84, "currency": "USD", "buy_exchange_rate": 0.8685, "sold": true, "sell_price_usd": 0.74, "sell_exchange_rate": 0.84},
         { "symbol": "NTLA", "type": "stock", "quantity": 1.0, "buy_price_usd": 12.24, "currency": "USD", "buy_exchange_rate": 0.8685 },
         { "symbol": "NTLA", "type": "stock", "quantity": 1.5192, "buy_price_usd": 9.11, "currency": "USD", "buy_exchange_rate": 0.8685 },
-        { "symbol": "CYBN", "type": "stock", "quantity": 2.5210, "buy_price_usd": 5.95, "currency": "USD", "buy_exchange_rate": 0.8685, "sold": true, "sell_price_usd": 8.34, "sell_exchange_rate": 0.848 }
+        { "symbol": "CYBN", "type": "stock", "quantity": 2.5210, "buy_price_usd": 5.95, "currency": "USD", "buy_exchange_rate": 0.8685, "sold": true, "sell_price_usd": 8.34, "sell_exchange_rate": 0.84 }
       ]
     },
     {
@@ -60,4 +60,5 @@
       ]
     }
   ]
+
 }
